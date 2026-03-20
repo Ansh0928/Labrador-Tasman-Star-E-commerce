@@ -23,6 +23,7 @@ interface Customer {
   mobile: string;
   email: string;
   optIn: boolean;
+  pushSubscription?: any; // Web Push subscription object
   signupDate: Timestamp | null;
 }
 
@@ -106,12 +107,34 @@ export default function AdminDashboard() {
 
     setSending(true);
     try {
-      const optedInCount = customers.filter((c) => c.optIn).length;
+      const targetCustomers = customers.filter((c) => c.optIn);
+      const pushSubscriptions = targetCustomers.map(c => c.pushSubscription).filter(Boolean);
+      const optedInCount = targetCustomers.length;
 
+      // 1. Send push notifications via API route
+      if (pushSubscriptions.length > 0) {
+        try {
+          await fetch('/api/send-notification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title: "Tasman Star Seafoods",
+              message: messageText.trim(),
+              subscriptions: pushSubscriptions,
+              url: "https://tasman-star-seafoods.vercel.app/"
+            })
+          });
+        } catch (pushErr) {
+          console.error("Failed to trigger push notifications:", pushErr);
+        }
+      }
+
+      // 2. Log message to Firestore
       await addDoc(collection(db, "messages"), {
         text: messageText.trim(),
         sentAt: serverTimestamp(),
         recipientCount: optedInCount,
+        pushCount: pushSubscriptions.length,
         sentBy: user?.email || "admin",
       });
 

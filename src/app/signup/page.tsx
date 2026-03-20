@@ -7,6 +7,17 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import "./signup.css";
 
+const urlB64ToUint8Array = (base64String: string) => {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/\-/g, "+").replace(/_/g, "/");
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+};
+
 export default function SignupPage() {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
@@ -28,11 +39,30 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
+      let pushSubscription = null;
+
+      // Request push notification permission and subscribe if opted in
+      if (optIn && "serviceWorker" in navigator && "PushManager" in window) {
+        try {
+          const registration = await navigator.serviceWorker.register("/sw.js");
+          const sub = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlB64ToUint8Array(
+              process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || ""
+            ),
+          });
+          pushSubscription = JSON.parse(JSON.stringify(sub));
+        } catch (err) {
+          console.warn("Push subscription failed or denied", err);
+        }
+      }
+
       await addDoc(collection(db, "customers"), {
         fullName: fullName.trim(),
         mobile: mobile.trim(),
         email: email.trim().toLowerCase(),
         optIn,
+        pushSubscription, // Save the subscription object to Firestore
         signupDate: serverTimestamp(),
         source: "qr-code",
       });
