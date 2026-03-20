@@ -9,13 +9,13 @@ import "./signup.css";
 
 // ── Carousel data ──────────────────────────────────────────────
 const FEATURES = [
-  { id: "lobster",    icon: "🦞", label: "Live Lobster",       image: "/images/carousel/lobster.png",    desc: "Straight from the tank, always alive." },
-  { id: "catch",      icon: "🐟", label: "Fresh Catch Daily",  image: "/images/carousel/catch.png",      desc: "Straight off the boat, every morning." },
   { id: "prawns",     icon: "🍤", label: "Wild Prawns",        image: "/images/carousel/prawns.webp",    desc: "Wild-caught, never farmed." },
+  { id: "oyster",     icon: "🦪", label: "Pacific Oysters",    image: "/images/carousel/oyster.png",     desc: "Freshly shucked, straight from the shell." },
   { id: "fillets",    icon: "🐠", label: "Fish Fillets",       image: "/images/carousel/fillets.png",    desc: "Fresh-cut fillets, no freezing ever." },
-  { id: "crab",       icon: "🦀", label: "Blue Swimmer Crab",  image: "/images/carousel/crab.png",       desc: "Queensland's finest blue swimmers." },
-  { id: "shellfish",  icon: "🐙", label: "Shellfish",          image: "/images/carousel/shellfish.webp", desc: "Oysters, mussels & more, freshly shucked." },
-  { id: "fishermen",  icon: "⚓", label: "Local Fishermen",    image: "/images/carousel/fishermen.png",  desc: "Supporting Gold Coast fishing families." },
+  { id: "bowl",       icon: "🍱", label: "Seafood Bowls",      image: "/images/carousel/bowl.png",       desc: "Ready-to-eat meals made fresh daily." },
+  { id: "trawlers",   icon: "⚓", label: "Local Trawlers",     image: "/images/carousel/trawlers.png",   desc: "Straight from Gold Coast fishing boats." },
+  { id: "store",      icon: "🏪", label: "Visit Our Store",    image: "/images/carousel/storefront.jpg", desc: "5-7 Olsen Ave, Labrador QLD 4215." },
+  { id: "shellfish",  icon: "🐙", label: "Shellfish & More",   image: "/images/carousel/shellfish.webp", desc: "Oysters, mussels & more, freshly shucked." },
 ];
 
 const N = FEATURES.length;
@@ -33,18 +33,21 @@ const urlB64ToUint8Array = (base64String: string) => {
 
 // ── Carousel hook ──────────────────────────────────────────────
 function useCarousel() {
-  const [active, setActive]       = useState(2);
-  const [imgSrc, setImgSrc]       = useState(FEATURES[2].image);
-  const [imgFade, setImgFade]     = useState(true);
-  const [paused, setPaused]       = useState(false);
-  const activeRef                 = useRef(active);
-  activeRef.current               = active;
+  const [active, setActive]   = useState(0);
+  const [slots, setSlots]     = useState<{ src: string; key: number }[]>([
+    { src: FEATURES[0].image, key: 0 },
+  ]);
+  const [paused, setPaused]   = useState(false);
+  const activeRef             = useRef(active);
+  activeRef.current           = active;
+  const keyRef                = useRef(1);
 
   const goTo = (idx: number) => {
     const n = ((idx % N) + N) % N;
     setActive(n);
-    setImgFade(false);
-    setTimeout(() => { setImgSrc(FEATURES[n].image); setImgFade(true); }, 220);
+    const newKey = keyRef.current++;
+    // Keep previous slot for exit animation, push new slot on top
+    setSlots((prev) => [...prev.slice(-1), { src: FEATURES[n].image, key: newKey }]);
   };
 
   useEffect(() => {
@@ -63,14 +66,14 @@ function useCarousel() {
     };
   };
 
-  return { active, imgSrc, imgFade, paused, setPaused, goTo, chipStyle };
+  return { active, slots, paused, setPaused, goTo, chipStyle };
 }
 
 // ── Component ──────────────────────────────────────────────────
 export default function SignupPage() {
   const router = useRouter();
 
-  const { active, imgSrc, imgFade, paused, setPaused, goTo, chipStyle } =
+  const { active, slots, paused, setPaused, goTo, chipStyle } =
     useCarousel();
 
   const [fullName, setFullName] = useState("");
@@ -162,12 +165,15 @@ export default function SignupPage() {
         {/* Photo card */}
         <div className="photo-col">
           <div className="photo-card">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={imgSrc}
-              alt={current.label}
-              style={{ opacity: imgFade ? 1 : 0 }}
-            />
+            {slots.map((slot, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={slot.key}
+                src={slot.src}
+                alt={current.label}
+                className={i === slots.length - 1 ? "photo-img photo-img-enter" : "photo-img photo-img-exit"}
+              />
+            ))}
             <div className="photo-caption">
               <div className="photo-badge">
                 {active + 1} • {current.label}
