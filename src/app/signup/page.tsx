@@ -41,36 +41,51 @@ export default function SignupPage() {
     try {
       let pushSubscription = null;
 
-      // Request push notification permission and subscribe if opted in
+      // Wrap push subscription in a timeout-promise so it NEVER blocks the signup flow
+      // if the user ignores the permission popup
       if (optIn && "serviceWorker" in navigator && "PushManager" in window) {
         try {
-          const registration = await navigator.serviceWorker.register("/sw.js");
-          const sub = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlB64ToUint8Array(
-              process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || ""
-            ),
-          });
-          pushSubscription = JSON.parse(JSON.stringify(sub));
+          const pushPromise = (async () => {
+            const registration = await navigator.serviceWorker.register("/sw.js");
+            const sub = await registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlB64ToUint8Array(
+                process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || ""
+              ),
+            });
+            return sub ? JSON.parse(JSON.stringify(sub)) : null;
+          })();
+
+          // Wait max 5 seconds for push permission prompt, otherwise proceed anyway.
+          pushSubscription = await Promise.race([
+            pushPromise,
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Push prompt timeout")), 5000))
+          ]);
         } catch (err) {
-          console.warn("Push subscription failed or denied", err);
+          console.warn("Push subscription skipped", err);
         }
       }
 
-      await addDoc(collection(db, "customers"), {
+      const customerData: any = {
         fullName: fullName.trim(),
         mobile: mobile.trim(),
         email: email.trim().toLowerCase(),
         optIn,
-        pushSubscription, // Save the subscription object to Firestore
         signupDate: serverTimestamp(),
         source: "qr-code",
-      });
+      };
+
+      if (pushSubscription) {
+        customerData.pushSubscription = pushSubscription;
+      }
+
+      await addDoc(collection(db, "customers"), customerData);
 
       router.push("/thank-you");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Signup error:", err);
-      setError("Something went wrong. Please try again.");
+      // Show exact error message to user so we can debug it
+      setError(`Signup failed: ${err.message || "Unknown error"}`);
       setLoading(false);
     }
   }
