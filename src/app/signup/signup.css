@@ -3,6 +3,7 @@
 .signup-page {
   display: flex;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   background: #080808;
 }
@@ -372,31 +373,53 @@
 }
 
 /* ══════════════════════════════
-   MOBILE — stack vertically
+   MOBILE — keep side-by-side, just tighten spacing
 ══════════════════════════════ */
-@media (max-width: 768px) {
-  .signup-page {
-    flex-direction: column;
-    height: auto;
-    min-height: 100vh;
-    overflow: auto;
-  }
-  .carousel-side {
-    width: 100%;
-    height: 380px;
-    flex-shrink: 0;
-  }
-  .carousel-fade-top,
-  .carousel-fade-bot { width: 100%; }
-  .form-side {
-    padding: 2rem 1.5rem 3rem;
-    border-left: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-  }
-}
+@media (max-width: 640px) {
+  .signup-page { height: 100dvh; overflow: hidden; }
 
-@media (max-width: 480px) {
-  .chip-col { padding: 4rem 0.75rem 4rem 1rem; gap: 0.5rem; }
-  .carousel-chip { padding: 0.7rem 1rem; font-size: 0.7rem; }
-  .photo-card { border-radius: 1.5rem; }
+  .carousel-side { width: 50%; }
+
+  .chip-col {
+    padding: 4rem 0.4rem 4rem 0.75rem;
+    gap: 0.45rem;
+  }
+  .carousel-chip {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.65rem;
+    gap: 0.4rem;
+  }
+  .chip-icon { font-size: 0.8rem; }
+
+  .photo-col { padding: 0.75rem 0.75rem 0.75rem 0; }
+  .photo-card {
+    inset: 0.75rem 0.75rem 0.75rem 0;
+    border-radius: 1.25rem;
+    border-width: 3px;
+  }
+  .photo-desc { font-size: 0.75rem; }
+  .photo-caption { padding: 2rem 0.75rem 0.75rem; }
+
+  .carousel-fade-top { height: 70px; }
+  .carousel-fade-bot { height: 70px; }
+
+  .form-side { padding: 1.5rem 1rem; }
+  .brand { margin-bottom: 1.25rem; }
+  .brand img { width: 38px; height: 38px; }
+  .brand-name { font-size: 0.8rem; }
+  .brand-addr,
+  .brand-phone { font-size: 0.6rem; }
+
+  .form-headline { font-size: 1.125rem; }
+  .form-sub { font-size: 0.75rem; margin-bottom: 1rem; }
+
+  .form-field { margin-bottom: 0.625rem; }
+  .form-field label { font-size: 0.6rem; }
+  .form-field input { padding: 0.575rem 0.75rem; font-size: 0.8rem; border-radius: 8px; }
+
+  .consent-row { margin: 0.4rem 0 1rem; }
+  .consent-row span { font-size: 0.65rem; }
+
+  .btn-primary { padding: 0.7rem; font-size: 0.85rem; }
+  .form-footer { font-size: 0.6rem; margin-top: 1rem; }
 }
