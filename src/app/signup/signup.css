@@ -1,0 +1,157 @@
+.signup-page {
+  min-height: 100vh;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ===== HERO BACKGROUND IMAGE ===== */
+.signup-hero-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 10, 10, 0.65) 0%,
+    rgba(10, 10, 10, 0.80) 40%,
+    rgba(10, 10, 10, 0.95) 70%,
+    rgba(10, 10, 10, 1) 100%
+  );
+}
+
+/* ===== HERO ===== */
+.signup-hero {
+  width: 100%;
+  padding: 3rem 1.5rem 1.5rem;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.logo-wrapper {
+  margin-bottom: 0.75rem;
+}
+
+.store-logo {
+  border-radius: 50%;
+  box-shadow: 0 4px 30px rgba(232, 117, 26, 0.2);
+}
+
+.signup-hero .tagline {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--on-surface-variant);
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* ===== FORM CARD ===== */
+.signup-form-wrapper {
+  width: 100%;
+  max-width: 420px;
+  padding: 0 1.5rem 3rem;
+  position: relative;
+  z-index: 1;
+}
+
+.signup-form-card {
+  background: rgba(30, 30, 30, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(232, 117, 26, 0.1);
+  padding: 2rem 1.5rem;
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.form-title {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 0.25rem;
+}
+
+.form-subtitle {
+  font-size: 0.8125rem;
+  color: var(--on-surface-variant);
+  margin-bottom: 1.75rem;
+}
+
+/* ===== FORM FIELDS ===== */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.signup-form-card .input-field {
+  padding: 1rem;
+}
+
+/* ===== CHECKBOX ===== */
+.consent-group {
+  margin-bottom: 1.75rem;
+}
+
+.consent-group .checkbox-label-text {
+  font-size: 0.8125rem;
+  color: var(--on-tertiary-container);
+  line-height: 1.5;
+}
+
+/* ===== SUBMIT BUTTON ===== */
+.signup-form-card .btn-primary {
+  font-size: 1rem;
+  padding: 1rem;
+  letter-spacing: 0.06em;
+}
+
+/* ===== LOADING SPINNER ===== */
+.btn-loading::after {
+  content: '';
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-left: 0.5rem;
+}
+
+/* ===== FOOTER ===== */
+.signup-footer {
+  width: 100%;
+  text-align: center;
+  padding: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.signup-footer p {
+  font-size: 0.75rem;
+  color: var(--outline);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (min-width: 600px) {
+  .signup-form-wrapper {
+    max-width: 480px;
+  }
+
+  .signup-form-card {
+    padding: 2.5rem 2rem;
+  }
+}

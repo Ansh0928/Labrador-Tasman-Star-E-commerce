@@ -1,0 +1,95 @@
+.thankyou-page {
+  min-height: 100vh;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Background */
+.thankyou-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+}
+
+.thankyou-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 10, 10, 0.7) 0%,
+    rgba(10, 10, 10, 0.85) 50%,
+    rgba(10, 10, 10, 0.95) 100%
+  );
+}
+
+.thankyou-content {
+  position: relative;
+  z-index: 1;
+  max-width: 480px;
+  animation: fadeInUp 0.8s ease forwards;
+}
+
+.thankyou-logo {
+  margin-bottom: 1.5rem;
+}
+
+.thankyou-logo .store-logo {
+  border-radius: 50%;
+  box-shadow: 0 4px 24px rgba(232, 117, 26, 0.2);
+}
+
+.thankyou-heading {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 7vw, 3rem);
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 1rem;
+  line-height: 1.1;
+}
+
+.thankyou-message {
+  font-size: 1rem;
+  color: var(--on-surface-variant);
+  line-height: 1.7;
+  margin-bottom: 2.5rem;
+}
+
+.thankyou-message strong {
+  color: var(--on-surface);
+}
+
+.thankyou-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.thankyou-footer {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  z-index: 1;
+}
+
+.thankyou-footer p {
+  font-size: 0.75rem;
+  color: var(--outline);
+}
