@@ -248,72 +248,114 @@ export default function AdminDashboard() {
       {/* Main Content */}
       <main className="admin-main">
         <header className="admin-header">
-          <h1>Dashboard</h1>
+          <h1>
+            {activeNav === "dashboard" && "Dashboard"}
+            {activeNav === "customers" && "Customers"}
+            {activeNav === "messages" && "Send Message"}
+            {activeNav === "settings" && "Settings"}
+          </h1>
           <span className="admin-date">{todayStr}</span>
         </header>
 
-        {/* Stats */}
-        <div className="stats-grid">
-          <div className="stat-card animate-fade-in-up" style={{ animationDelay: "0s" }}>
-            <div className="stat-label">Total Customers</div>
-            <div className="stat-value">{totalCustomers.toLocaleString()}</div>
-            <div className="stat-change">All time signups</div>
-          </div>
-          <div className="stat-card animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-            <div className="stat-label">Messages Sent Today</div>
-            <div className="stat-value">{messagesToday}</div>
-            <div className="stat-change">Via dashboard</div>
-          </div>
-          <div className="stat-card animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-            <div className="stat-label">New Signups This Week</div>
-            <div className="stat-value">{signupsThisWeek}</div>
-            <div className="stat-change">Last 7 days</div>
-          </div>
-        </div>
-
-        {/* Dashboard Grid: Compose + Customers */}
-        <div className="dashboard-grid">
-          {/* Compose Message */}
-          <div className="compose-card">
-            <h2>Send Daily Special</h2>
-            <p className="compose-sub">Compose a message to all opted-in customers</p>
-
-            <textarea
-              placeholder="🐟 Fresh Atlantic Salmon just arrived! Come visit Tasman Star today..."
-              value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
-              maxLength={500}
-            />
-
-            <div className="template-chips">
-              {TEMPLATES.map((tpl) => (
-                <button
-                  key={tpl.label}
-                  className="chip"
-                  onClick={() => setMessageText(tpl.text)}
-                  type="button"
-                >
-                  {tpl.label}
-                </button>
-              ))}
+        {activeNav === "dashboard" && (
+          <>
+            {/* Stats */}
+            <div className="stats-grid">
+              <div className="stat-card animate-fade-in-up" style={{ animationDelay: "0s" }}>
+                <div className="stat-label">Total Customers</div>
+                <div className="stat-value">{totalCustomers.toLocaleString()}</div>
+                <div className="stat-change">All time signups</div>
+              </div>
+              <div className="stat-card animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+                <div className="stat-label">Messages Sent Today</div>
+                <div className="stat-value">{messagesToday}</div>
+                <div className="stat-change">Via dashboard</div>
+              </div>
+              <div className="stat-card animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+                <div className="stat-label">New Signups This Week</div>
+                <div className="stat-value">{signupsThisWeek}</div>
+                <div className="stat-change">Last 7 days</div>
+              </div>
             </div>
 
-            <div className="compose-actions">
-              <button
-                className={`btn-primary ${sending ? "btn-loading" : ""}`}
-                onClick={handleSendMessage}
-                disabled={sending}
-              >
-                {sending ? "Sending..." : "📤 Send to All"}
-              </button>
-              <span className="char-count">{messageText.length}/500</span>
-            </div>
-          </div>
+            {/* Dashboard Grid: Compose + Customers */}
+            <div className="dashboard-grid">
+              {/* Compose Message snippet */}
+              <div className="compose-card">
+                <h2>Quick Send</h2>
+                <p className="compose-sub">Send a message to all opted-in customers</p>
 
-          {/* Recent Customers */}
-          <div className="customers-card">
-            <h2>Recent Customers</h2>
-            <p className="customers-sub">Latest signups from QR code</p>
+                <textarea
+                  placeholder="🐟 Fresh Atlantic Salmon just arrived! Come visit Tasman Star today..."
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  maxLength={500}
+                />
+
+                <div className="template-chips">
+                  {TEMPLATES.slice(0, 2).map((tpl) => (
+                    <button key={tpl.label} className="chip" onClick={() => setMessageText(tpl.text)} type="button">
+                      {tpl.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="compose-actions">
+                  <button
+                    className={`btn-primary ${sending ? "btn-loading" : ""}`}
+                    onClick={handleSendMessage}
+                    disabled={sending}
+                  >
+                    {sending ? "Sending..." : "📤 Quick Send"}
+                  </button>
+                  <span className="char-count">{messageText.length}/500</span>
+                </div>
+              </div>
+
+              {/* Recent Customers snippet */}
+              <div className="customers-card">
+                <h2>Recent Signups</h2>
+                <p className="customers-sub">Latest customers from QR code</p>
+
+                {customers.length === 0 ? (
+                  <div className="no-customers">
+                    <p>No customers yet. Share your QR code!</p>
+                  </div>
+                ) : (
+                  <div className="customers-table-wrapper">
+                    <table className="customers-table">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Phone</th>
+                          <th>Opted In</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {customers.slice(0, 8).map((c) => (
+                          <tr key={c.id}>
+                            <td className="customer-name">{c.fullName}</td>
+                            <td>{c.mobile}</td>
+                            <td>
+                              <span className={`customer-badge ${c.optIn ? "opted-in" : "opted-out"}`}>
+                                {c.optIn ? "Yes" : "No"}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
+        {activeNav === "customers" && (
+          <div className="customers-card animate-fade-in-up">
+            <h2>All Customers</h2>
+            <p className="customers-sub">Complete list of registered customers</p>
 
             {customers.length === 0 ? (
               <div className="no-customers">
@@ -332,7 +374,7 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {customers.slice(0, 10).map((c) => (
+                    {customers.map((c) => (
                       <tr key={c.id}>
                         <td className="customer-name">{c.fullName}</td>
                         <td>{c.mobile}</td>
@@ -350,20 +392,74 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
-        </div>
+        )}
 
-        {/* Recent Messages */}
-        {messages.length > 0 && (
-          <div className="messages-log">
-            <h2>Recent Messages</h2>
-            {messages.slice(0, 5).map((m) => (
-              <div key={m.id} className="message-item">
-                <p className="message-text">{m.text}</p>
-                <p className="message-meta">
-                  Sent to {m.recipientCount} customers • {formatDateTime(m.sentAt)}
-                </p>
+        {activeNav === "messages" && (
+          <div className="animate-fade-in-up">
+            <div className="compose-card" style={{ marginBottom: "2rem" }}>
+              <h2>Send Special Offer</h2>
+              <p className="compose-sub">Compose a detailed message to all {customers.filter(c => c.optIn).length} opted-in customers</p>
+
+              <textarea
+                placeholder="🐟 Fresh Atlantic Salmon just arrived! Come visit Tasman Star today..."
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                maxLength={500}
+                style={{ minHeight: "180px" }}
+              />
+
+              <div className="template-chips">
+                {TEMPLATES.map((tpl) => (
+                  <button key={tpl.label} className="chip" onClick={() => setMessageText(tpl.text)} type="button">
+                    {tpl.label}
+                  </button>
+                ))}
               </div>
-            ))}
+
+              <div className="compose-actions">
+                <button
+                  className={`btn-primary ${sending ? "btn-loading" : ""}`}
+                  onClick={handleSendMessage}
+                  disabled={sending}
+                >
+                  {sending ? "Sending..." : "📤 Send Message to All"}
+                </button>
+                <span className="char-count">{messageText.length}/500</span>
+              </div>
+            </div>
+
+            {/* Recent Messages */}
+            {messages.length > 0 && (
+              <div className="messages-log">
+                <h2>Message History</h2>
+                {messages.map((m) => (
+                  <div key={m.id} className="message-item">
+                    <p className="message-text">{m.text}</p>
+                    <p className="message-meta">
+                      Sent to {m.recipientCount} customers • {formatDateTime(m.sentAt)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeNav === "settings" && (
+          <div className="compose-card animate-fade-in-up">
+            <h2>Store Settings</h2>
+            <p className="compose-sub">Manage your admin profile and account.</p>
+            
+            <div style={{ marginTop: "2rem", display: "flex", flexDirection: "column", gap: "1rem", maxWidth: "400px" }}>
+              <div>
+                <label className="input-label">Admin Email</label>
+                <input className="input-field" type="email" value={user?.email || ""} disabled style={{ opacity: 0.7 }} />
+              </div>
+              <div>
+                <label className="input-label">Password</label>
+                <button className="btn-secondary" style={{ width: "100%" }}>Reset Password</button>
+              </div>
+            </div>
           </div>
         )}
       </main>
