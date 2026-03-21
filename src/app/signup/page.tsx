@@ -146,7 +146,11 @@ export default function SignupPage() {
         </span>
 
         {/* Chip column */}
-        <div className="chip-col">
+        <div className="chip-col" ref={(el) => {
+          if (!el) return;
+          const activeBtn = el.querySelector<HTMLElement>(".carousel-chip.active");
+          if (activeBtn) activeBtn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+        }}>
           {FEATURES.map((f, i) => (
             <button
               key={f.id}
