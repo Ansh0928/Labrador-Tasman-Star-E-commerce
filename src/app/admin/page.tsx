@@ -44,131 +44,94 @@ const TEMPLATES = [
   { label: "🆕 New Arrival", text: "🆕 New Arrival at Tasman Star Seafoods!\n\nWe've just received a shipment of premium Blue Swimmer Crab and Yellowtail Kingfish. Limited stock — swing by before they're gone!" },
 ];
 
-// ─── Recommendations engine ──────────────────────────────────────────────────
-interface Recommendation {
-  id: string;
-  priority: "high" | "medium" | "low";
-  title: string;
-  body: string;
-  action?: string;
-  template?: string;
+// ─── Quick Send recommendations ──────────────────────────────────────────────
+interface QuickRec {
+  label: string;
+  reason: string;
+  text: string;
 }
 
-function buildRecommendations(
-  customers: Customer[],
-  messages: SentMessage[]
-): Recommendation[] {
-  const recs: Recommendation[] = [];
+function buildQuickRecs(customers: Customer[], messages: SentMessage[]): QuickRec[] {
+  const recs: QuickRec[] = [];
   const now = new Date();
-  const day = now.getDay(); // 0=Sun, 5=Fri, 6=Sat
+  const day = now.getDay(); // 0=Sun,1=Mon,...,5=Fri,6=Sat
   const hour = now.getHours();
-  const optedIn = customers.filter((c) => c.optIn).length;
-
-  // Last message sent
   const lastMsg = messages[0];
-  const lastSentDate = lastMsg?.sentAt?.toDate();
-  const daysSinceLast = lastSentDate
-    ? Math.floor((now.getTime() - lastSentDate.getTime()) / 86400000)
+  const daysSinceLast = lastMsg?.sentAt
+    ? Math.floor((now.getTime() - lastMsg.sentAt.toDate().getTime()) / 86400000)
     : null;
-
-  // 1. Overdue nudge
-  if (daysSinceLast === null) {
-    recs.push({
-      id: "no-messages",
-      priority: "high",
-      title: "Send your first message",
-      body: `You have ${optedIn} opted-in customers waiting. Send them a welcome offer to get started.`,
-      action: "Send Now",
-      template: TEMPLATES[0].text,
-    });
-  } else if (daysSinceLast >= 7) {
-    recs.push({
-      id: "overdue",
-      priority: "high",
-      title: `${daysSinceLast} days since last message`,
-      body: "Customers who haven't heard from you in a week are more likely to forget you. Re-engage now.",
-      action: "Send Now",
-      template: TEMPLATES[0].text,
-    });
-  } else if (daysSinceLast >= 3) {
-    recs.push({
-      id: "due-soon",
-      priority: "medium",
-      title: "Good time for a fresh message",
-      body: `Last sent ${daysSinceLast} days ago. A mid-week update keeps customers engaged.`,
-      action: "Compose",
-    });
-  }
-
-  // 2. Day-of-week timing
-  if (day === 5 && hour < 14) {
-    recs.push({
-      id: "friday",
-      priority: "high",
-      title: "It's Friday — perfect for a weekend special",
-      body: "Friday messages before 2pm get the best open rates. Customers plan weekend shopping now.",
-      action: "Use Template",
-      template: TEMPLATES[1].text,
-    });
-  } else if (day === 6 || day === 0) {
-    recs.push({
-      id: "weekend",
-      priority: "medium",
-      title: "Weekend shoppers are out",
-      body: "Seafood sells fastest on weekends. A quick fresh-catch message drives foot traffic today.",
-      action: "Use Template",
-      template: TEMPLATES[0].text,
-    });
-  } else if (day === 1) {
-    recs.push({
-      id: "monday",
-      priority: "low",
-      title: "New week, new stock",
-      body: "Monday is a great day to announce new arrivals and set the tone for the week.",
-      action: "Use Template",
-      template: TEMPLATES[2].text,
-    });
-  }
-
-  // 3. List health
-  const optInRate = customers.length ? (optedIn / customers.length) * 100 : 0;
-  if (customers.length > 0 && optInRate < 70) {
-    recs.push({
-      id: "opt-in-rate",
-      priority: "medium",
-      title: "Opt-in rate below 70%",
-      body: `Only ${Math.round(optInRate)}% of customers are opted in. Consider asking in-store to improve reach.`,
-    });
-  }
-
-  // 4. New signups
   const newThisWeek = customers.filter((c) => {
     if (!c.signupDate) return false;
     const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
     return c.signupDate.toDate() >= weekAgo;
   }).length;
-  if (newThisWeek >= 3) {
+
+  // Friday before 2pm → weekend special is top pick
+  if (day === 5 && hour < 14) {
     recs.push({
-      id: "new-signups",
-      priority: "low",
-      title: `${newThisWeek} new signups this week`,
-      body: "Great momentum! Send a welcome offer to convert new subscribers into repeat customers.",
-      action: "Welcome Them",
-      template: "🎉 Welcome to Tasman Star Seafoods!\n\nThank you for signing up. As a new member, enjoy a special offer: 10% off your next purchase. Come visit us and mention this message at the counter!",
+      label: "🎉 Weekend Special",
+      reason: "It's Friday — customers plan weekend shopping now",
+      text: TEMPLATES[1].text,
     });
   }
 
-  // 5. Best send time hint
-  if (hour >= 9 && hour <= 11 && daysSinceLast !== 0) {
+  // Weekend → fresh catch drives foot traffic
+  if (day === 6 || day === 0) {
     recs.push({
-      id: "best-time",
-      priority: "low",
-      title: "Prime send window open",
-      body: "9am–11am gets the highest message open rates. If you're planning to send today, now is the time.",
+      label: "🐟 Fresh Catch",
+      reason: "Weekend shoppers respond best to fresh stock alerts",
+      text: TEMPLATES[0].text,
     });
   }
 
-  return recs.slice(0, 4); // max 4 shown
+  // Monday → new arrivals
+  if (day === 1) {
+    recs.push({
+      label: "🆕 New Arrival",
+      reason: "Mondays are great for announcing new stock",
+      text: TEMPLATES[2].text,
+    });
+  }
+
+  // New signups this week → welcome message
+  if (newThisWeek >= 2) {
+    recs.push({
+      label: "👋 Welcome Offer",
+      reason: `${newThisWeek} new customers this week — convert them now`,
+      text: "👋 Welcome to Tasman Star Seafoods!\n\nThank you for joining us. As a welcome treat, enjoy 10% off your next purchase — just mention this message at the counter. We can't wait to see you!",
+    });
+  }
+
+  // Been quiet for 5+ days → re-engage
+  if (daysSinceLast !== null && daysSinceLast >= 5) {
+    recs.push({
+      label: "🔔 Re-engage",
+      reason: `${daysSinceLast} days since last message — time to check in`,
+      text: "🔔 It's been a little while at Tasman Star Seafoods!\n\nWe've got fresh stock in and some great deals waiting for you. Come visit us this week — we'd love to see you!",
+    });
+  }
+
+  // Morning window hint
+  if (hour >= 9 && hour <= 11) {
+    recs.push({
+      label: "🐟 Fresh Catch",
+      reason: "9–11am is peak open-rate time — send now for best results",
+      text: TEMPLATES[0].text,
+    });
+  }
+
+  // Always have at least the core 3 as fallback
+  if (recs.length === 0) {
+    return TEMPLATES.map((t) => ({ label: t.label, reason: "Popular template", text: t.text }));
+  }
+
+  // Dedupe by text and cap at 3
+  const seen = new Set<string>();
+  return recs.filter((r) => {
+    if (seen.has(r.text)) return false;
+    seen.add(r.text);
+    return true;
+  }).slice(0, 3);
 }
 
 // ─── Icons ───────────────────────────────────────────────────────────────────
@@ -362,8 +325,8 @@ export default function AdminDashboard() {
     router.push("/admin/login");
   }
 
-  // Recommendations
-  const recommendations = buildRecommendations(customers, messages);
+  // Quick Send recommendations
+  const quickRecs = buildQuickRecs(customers, messages);
 
   // Stats
   const totalCustomers = customers.length;
@@ -512,10 +475,17 @@ export default function AdminDashboard() {
                     onChange={(e) => setMessageText(e.target.value)}
                     maxLength={500}
                   />
-                  <div className="template-chips">
-                    {TEMPLATES.slice(0, 2).map((t) => (
-                      <button key={t.label} className="chip" onClick={() => setMessageText(t.text)} type="button">
-                        {t.label}
+                  <div className="quick-recs">
+                    <div className="quick-recs-label">Recommended</div>
+                    {quickRecs.map((r) => (
+                      <button
+                        key={r.label}
+                        className="quick-rec-chip"
+                        onClick={() => setMessageText(r.text)}
+                        type="button"
+                      >
+                        <span className="qrc-label">{r.label}</span>
+                        <span className="qrc-reason">{r.reason}</span>
                       </button>
                     ))}
                   </div>
@@ -556,41 +526,6 @@ export default function AdminDashboard() {
                   )}
                 </div>
               </div>
-
-              {/* ── Recommendations ── */}
-              {recommendations.length > 0 && (
-                <div className="recs-panel fade-up">
-                  <div className="recs-header">
-                    <div>
-                      <div className="panel-title">Smart Recommendations</div>
-                      <div className="panel-sub">Based on your customers, send history, and timing</div>
-                    </div>
-                    <span className="recs-count">{recommendations.length} insight{recommendations.length !== 1 ? "s" : ""}</span>
-                  </div>
-                  <div className="recs-list">
-                    {recommendations.map((rec) => (
-                      <div key={rec.id} className={`rec-item rec-${rec.priority}`}>
-                        <div className={`rec-dot rec-dot-${rec.priority}`} />
-                        <div className="rec-body">
-                          <div className="rec-title">{rec.title}</div>
-                          <div className="rec-text">{rec.body}</div>
-                        </div>
-                        {rec.action && (
-                          <button
-                            className="rec-action"
-                            onClick={() => {
-                              if (rec.template) setMessageText(rec.template);
-                              setActiveNav("messages");
-                            }}
-                          >
-                            {rec.action} →
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Message History on Dashboard */}
               {messages.length > 0 && (
@@ -680,10 +615,12 @@ export default function AdminDashboard() {
                   maxLength={500}
                   style={{ minHeight: "160px" }}
                 />
-                <div className="template-chips">
-                  {TEMPLATES.map((t) => (
-                    <button key={t.label} className="chip" onClick={() => setMessageText(t.text)} type="button">
-                      {t.label}
+                <div className="quick-recs">
+                  <div className="quick-recs-label">Recommended</div>
+                  {quickRecs.map((r) => (
+                    <button key={r.label} className="quick-rec-chip" onClick={() => setMessageText(r.text)} type="button">
+                      <span className="qrc-label">{r.label}</span>
+                      <span className="qrc-reason">{r.reason}</span>
                     </button>
                   ))}
                 </div>
