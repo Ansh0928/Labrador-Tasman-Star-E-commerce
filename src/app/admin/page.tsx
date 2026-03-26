@@ -11,6 +11,9 @@ import {
   limit,
   serverTimestamp,
   Timestamp,
+  updateDoc,
+  deleteDoc,
+  doc,
 } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
@@ -208,6 +211,20 @@ const IconX = () => (
   </svg>
 );
 
+const IconEdit = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+  </svg>
+);
+
+const IconTrash = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+    <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+  </svg>
+);
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function getInitial(name: string) {
   return name?.charAt(0)?.toUpperCase() || "?";
@@ -234,6 +251,9 @@ export default function AdminDashboard() {
   const [sending, setSending] = useState(false);
   const [toast, setToast] = useState<{ type: string; text: string } | null>(null);
   const [activeNav, setActiveNav] = useState("dashboard");
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Customer | null>(null);
+  const [testEmailSending, setTestEmailSending] = useState(false);
 
   // Auth
   useEffect(() => {
@@ -318,6 +338,55 @@ export default function AdminDashboard() {
       showToast("error", "Failed to send. Please try again.");
     }
     setSending(false);
+  }
+
+  async function handleEditSave() {
+    if (!editingCustomer) return;
+    try {
+      await updateDoc(doc(db, "customers", editingCustomer.id), {
+        fullName: editingCustomer.fullName,
+        mobile: editingCustomer.mobile,
+        email: editingCustomer.email,
+        optIn: editingCustomer.optIn,
+      });
+      showToast("success", "Customer updated.");
+      setEditingCustomer(null);
+      await loadData();
+    } catch {
+      showToast("error", "Failed to update customer.");
+    }
+  }
+
+  async function handleDeleteCustomer() {
+    if (!deleteTarget) return;
+    try {
+      await deleteDoc(doc(db, "customers", deleteTarget.id));
+      showToast("success", `${deleteTarget.fullName} deleted.`);
+      setDeleteTarget(null);
+      await loadData();
+    } catch {
+      showToast("error", "Failed to delete customer.");
+    }
+  }
+
+  async function handleSendTestEmail() {
+    if (!user?.email) return;
+    setTestEmailSending(true);
+    try {
+      await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          emails: [user.email],
+          subject: "Test Email — Tasman Star Seafoods",
+          message: "🐟 This is a test email from your Tasman Star admin panel.\n\nIf you can see this, your email sending is working correctly!",
+        }),
+      });
+      showToast("success", `Test email sent to ${user.email}`);
+    } catch {
+      showToast("error", "Failed to send test email.");
+    }
+    setTestEmailSending(false);
   }
 
   async function handleLogout() {
@@ -574,6 +643,7 @@ export default function AdminDashboard() {
                         <th>Email</th>
                         <th>Signed Up</th>
                         <th>Status</th>
+                        <th></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -591,6 +661,16 @@ export default function AdminDashboard() {
                               <span className="opted-dot" />
                               {c.optIn ? "Opted In" : "Opted Out"}
                             </span>
+                          </td>
+                          <td>
+                            <div className="row-actions">
+                              <button className="row-action-btn edit" onClick={() => setEditingCustomer({ ...c })} aria-label="Edit">
+                                <IconEdit />
+                              </button>
+                              <button className="row-action-btn delete" onClick={() => setDeleteTarget(c)} aria-label="Delete">
+                                <IconTrash />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -680,6 +760,12 @@ export default function AdminDashboard() {
                     <label className="input-label">Password</label>
                     <button className="btn-secondary">Reset Password</button>
                   </div>
+                  <div>
+                    <label className="input-label">Test Email</label>
+                    <button className="btn-secondary" onClick={handleSendTestEmail} disabled={testEmailSending}>
+                      {testEmailSending ? "Sending…" : `Send test to ${user?.email}`}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -704,6 +790,66 @@ export default function AdminDashboard() {
 
         </div>
       </main>
+      {/* ── Edit Modal ── */}
+      {editingCustomer && (
+        <div className="modal-backdrop" onClick={() => setEditingCustomer(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Edit Customer</div>
+              <button className="modal-close" onClick={() => setEditingCustomer(null)}><IconX /></button>
+            </div>
+            <div className="modal-body">
+              <div className="modal-field">
+                <label className="input-label">Full Name</label>
+                <input className="input-field" value={editingCustomer.fullName}
+                  onChange={(e) => setEditingCustomer({ ...editingCustomer, fullName: e.target.value })} />
+              </div>
+              <div className="modal-field">
+                <label className="input-label">Mobile</label>
+                <input className="input-field" value={editingCustomer.mobile}
+                  onChange={(e) => setEditingCustomer({ ...editingCustomer, mobile: e.target.value })} />
+              </div>
+              <div className="modal-field">
+                <label className="input-label">Email</label>
+                <input className="input-field" value={editingCustomer.email}
+                  onChange={(e) => setEditingCustomer({ ...editingCustomer, email: e.target.value })} />
+              </div>
+              <div className="modal-field">
+                <label className="modal-checkbox-row">
+                  <input type="checkbox" checked={editingCustomer.optIn}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, optIn: e.target.checked })} />
+                  <span className="input-label" style={{ marginBottom: 0 }}>Opted In</span>
+                </label>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setEditingCustomer(null)}>Cancel</button>
+              <button className="btn-send" onClick={handleEditSave}>Save Changes</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete Confirm ── */}
+      {deleteTarget && (
+        <div className="modal-backdrop" onClick={() => setDeleteTarget(null)}>
+          <div className="modal modal-sm" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Delete Customer</div>
+              <button className="modal-close" onClick={() => setDeleteTarget(null)}><IconX /></button>
+            </div>
+            <div className="modal-body">
+              <p className="modal-confirm-text">
+                Remove <strong>{deleteTarget.fullName}</strong> from your customer list? This cannot be undone.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setDeleteTarget(null)}>Cancel</button>
+              <button className="btn-danger" onClick={handleDeleteCustomer}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

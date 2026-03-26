@@ -1,6 +1,8 @@
 .admin-login-page {
   min-height: 100vh;
-  background: var(--surface);
+  background: #09090b;
+  background-image:
+    radial-gradient(ellipse 60% 50% at 50% -10%, rgba(232, 117, 26, 0.12) 0%, transparent 70%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -10,13 +12,12 @@
 .admin-login-card {
   width: 100%;
   max-width: 400px;
-  background: rgba(30, 30, 30, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: var(--radius-xl);
-  border: 1px solid rgba(232, 117, 26, 0.1);
+  background: #111115;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 2.5rem 2rem;
-  animation: fadeInUp 0.6s ease forwards;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+  animation: fadeInUp 0.4s ease forwards;
 }
 
 .admin-login-header {
@@ -27,25 +28,57 @@
 .login-logo {
   border-radius: 50%;
   margin-bottom: 1rem;
-  box-shadow: 0 2px 16px rgba(232, 117, 26, 0.15);
+  box-shadow: 0 0 0 4px rgba(232, 117, 26, 0.15), 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .admin-login-header h1 {
   font-family: var(--font-display);
-  font-size: 1.75rem;
-  color: var(--primary);
+  font-size: 1.5rem;
+  color: #fafafa;
   margin-bottom: 0.25rem;
+  letter-spacing: -0.3px;
 }
 
 .admin-login-header p {
   font-size: 0.8125rem;
-  color: var(--on-surface-variant);
+  color: #52525b;
 }
 
 .admin-login-card .form-group {
   margin-bottom: 1.25rem;
 }
 
+/* Override global input styles for better contrast in dark card */
+.admin-login-card .input-label {
+  color: #71717a;
+}
+
+.admin-login-card .input-field {
+  background: #0d0d11;
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #e4e4e7;
+  font-size: 0.9375rem;
+  padding: 0.75rem 1rem;
+}
+
+.admin-login-card .input-field::placeholder {
+  color: #3f3f46;
+  opacity: 1;
+}
+
+.admin-login-card .input-field:focus {
+  border-color: rgba(232, 117, 26, 0.5);
+  box-shadow: 0 0 0 3px rgba(232, 117, 26, 0.08);
+}
+
 .admin-login-card .btn-primary {
   margin-top: 0.5rem;
+  background: linear-gradient(135deg, #e8751a, #f59e0b);
+  font-size: 0.875rem;
+  padding: 0.8rem 2rem;
+  letter-spacing: 0.02em;
+}
+
+.admin-login-card .btn-primary:hover {
+  box-shadow: 0 6px 24px rgba(232, 117, 26, 0.3);
 }
