@@ -18,16 +18,28 @@ export async function POST(req: Request) {
           to,
           subject: subject || "Special Offer from Tasman Star Seafoods",
           html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <div style="background: #FF6B00; padding: 24px; text-align: center;">
-                <h1 style="color: white; margin: 0; font-size: 22px;">Tasman Star Seafoods</h1>
-                <p style="color: rgba(255,255,255,0.85); margin: 4px 0 0;">Fresh Seafood, Daily Catch</p>
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
+              <div style="background: #1a1a1a; padding: 32px 24px; text-align: center;">
+                <img
+                  src="https://tasman-star-seafoods.vercel.app/images/logo.png"
+                  alt="Tasman Star Seafoods"
+                  width="110"
+                  height="110"
+                  style="display: block; margin: 0 auto 16px; border-radius: 50%;"
+                />
+                <h1 style="color: #ffffff; margin: 0 0 4px; font-size: 22px; letter-spacing: 0.5px;">Tasman Star Seafoods</h1>
+                <p style="color: rgba(255,255,255,0.6); margin: 0; font-size: 13px;">Fresh Seafood, Daily Catch</p>
               </div>
-              <div style="padding: 32px 24px; background: #fff;">
-                <p style="font-size: 16px; line-height: 1.6; color: #222; white-space: pre-line;">${message}</p>
+
+              <div style="padding: 36px 32px; background: #fff; border-left: 1px solid #eee; border-right: 1px solid #eee;">
+                <p style="font-size: 16px; line-height: 1.7; color: #222; white-space: pre-line; margin: 0;">${message}</p>
               </div>
-              <div style="background: #1a1a1a; padding: 16px; text-align: center;">
-                <p style="color: #888; font-size: 12px; margin: 0;">
+
+              <div style="background: #f7f7f7; padding: 24px 32px; border: 1px solid #eee; border-top: none; text-align: center;">
+                <p style="margin: 0 0 6px; font-size: 13px; color: #444; font-weight: bold;">Tasman Star Seafoods</p>
+                <p style="margin: 0 0 4px; font-size: 12px; color: #666;">5-7 Olsen Ave, Labrador QLD 4215</p>
+                <p style="margin: 0 0 16px; font-size: 12px; color: #666;">(07) 5529 2500</p>
+                <p style="margin: 0; font-size: 11px; color: #aaa;">
                   You received this because you opted in at Tasman Star Seafoods.
                 </p>
               </div>
